@@ -1,0 +1,213 @@
+<div class="container-fluid bg-secondary-subtle vh-100">
+  <div class="row">
+    <div class="col-md-12 mt-4">
+      <h1 class="text-center">Piezas de Lego</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="d-flex justify-content-center col-md-12 mt-4">
+      <button
+        class="btn btn-success"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasForms"
+        aria-controls="offcanvasForms"
+        (click)="openAddLego()"
+      >
+        Agregar Nueva Pieza
+      </button>
+    </div>
+  </div>
+  <div class="row justify-content-center gap-3">
+    <div class="col-lg-3 col-md-4 mb-2 mt-4">
+      <select class="form-select" (change)="getSelectedOption($event)">
+        <option value="" selected>Buscar por...</option>
+        <option *ngFor="let option of searchOptions" class="search-option">
+          {{ option }}
+        </option>
+      </select>
+    </div>
+    <div class="col-lg-4 col-md-3 mb-2 mt-4 position-relative">
+      <div class="search-by-container">
+        <input
+          #searchInput
+          type="text"
+          class="form-control"
+          (input)="getResultOptions($event)"
+        />
+        <img
+          _ngcontent-ng-c261296637=""
+          src="https://img.icons8.com/ios/50/cancel.png"
+          alt="cancel"
+          class="cancel-icon"
+          (click)="searchInput.value = ''"
+        />
+      </div>
+      <div
+        class="results-container"
+        *ngIf="resultOptions.length > 0 && searchInput.value !== ''"
+      >
+        <div
+          class="result"
+          *ngFor="let result of resultOptions"
+          (click)="getLegoPieces(result)"
+        >
+          <p class="fs-5">{{ result }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive mt-4" *ngIf="legoData.length > 0 || !isLoading">
+    <table class="table table-stripped">
+      <thead>
+        <tr>
+          <th>Imagen Pieza</th>
+          <th>Imagen Set</th>
+          <th *ngFor="let header of searchOptions">{{ header }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let piece of legoData; let i = index">
+          <td>
+            <div class="image-cell">
+              <img [src]="piece.imgPiece" alt="" />
+            </div>
+          </td>
+          <td>
+            <div class="image-cell">
+              <img [src]="piece.imgLego" alt="" />
+            </div>
+          </td>
+          <td *ngFor="let column of searchOptions">
+            {{ piece[column.toLowerCase()] }}
+          </td>
+          <td>
+            <div class="btn-cell">
+              <button
+                class="btn btn-primary"
+                (click)="openEditLego(piece)"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasForms"
+                aria-controls="offcanvasForms"
+              >
+                Editar Lego
+              </button>
+              <button
+                class="btn btn-danger"
+                (click)="deleteLego(piece.id, piece.lego)"
+              >
+                Eliminar Lego
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <nav
+      *ngIf="totalPages > 1"
+      class="d-flex flex-column align-items-center mt-3"
+    >
+      <ul class="pagination justify-content-center">
+        <li class="page-item" [class.disabled]="page === 1">
+          <a class="page-link" (click)="onPageChange(1)">&laquo;</a>
+        </li>
+        <li class="page-item" [class.disabled]="page === 1">
+          <a class="page-link" (click)="onPageChange(page - 1)">&lsaquo;</a>
+        </li>
+
+        <li
+          class="page-item"
+          *ngFor="let p of getPages()"
+          [class.active]="p === page"
+        >
+          <a class="page-link" (click)="onPageChange(p)">{{ p }}</a>
+        </li>
+
+        <li class="page-item" [class.disabled]="page === totalPages">
+          <a class="page-link" (click)="onPageChange(page + 1)">&rsaquo;</a>
+        </li>
+        <li class="page-item" [class.disabled]="page === totalPages">
+          <a class="page-link" (click)="onPageChange(totalPages)">&raquo;</a>
+        </li>
+      </ul>
+
+      <div class="page-info mt-2">
+        Página {{ page }} de {{ totalPages }} | Mostrando
+        {{ legoData.length }} de {{ totalLegos }} resultados
+      </div>
+    </nav>
+  </div>
+  <div class="loader-container" *ngIf="isLoading">
+    <div class="loader"></div>
+  </div>
+
+  <div
+    class="offcanvas offcanvas-end"
+    tabindex="-1"
+    id="offcanvasForms"
+    aria-labelledby="offcanvasFormsLabel"
+  >
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasFormsLabel">
+        {{ isAdding ? "Agregar Nuevo Lego" : "Editar Lego" }}
+      </h5>
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="offcanvas"
+        aria-label="Close"
+      ></button>
+    </div>
+    <div class="offcanvas-body">
+      <form
+        [formGroup]="isAdding ? addLegoForm : editLegoForm"
+        class="add-form mb-4"
+      >
+        <ng-container *ngFor="let controlName of addLegoForm.controls | keyvalue">
+          <div
+            class="form-group mb-2"
+            *ngIf="controlName.key !== 'id'"
+          >
+            <label [for]="controlName.key" class="form-label">
+              {{ controlName.key }}
+            </label>
+
+            <div class="d-flex flex-column position-relative">
+              <input
+                type="text"
+                class="form-control"
+                [formControlName]="controlName.key"
+                (input)="getOptionsInForm($event, controlName.key)"
+                [attr.data-field]="controlName.key"
+              />
+
+              <!-- Muestra solo si es el campo activo -->
+              <div
+                class="results-form-container"
+                *ngIf="
+                  inputFormOptions.length > 0 && activeField === controlName.key
+                "
+              >
+                <div
+                  class="result"
+                  *ngFor="let result of inputFormOptions"
+                  (click)="addNewValueToForm(result)"
+                >
+                  <p class="fs-5">{{ result }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </form>
+      <button
+        class="btn btn-primary"
+        data-bs-dismiss="offcanvas"
+        aria-label="Close"
+        (click)="isAdding ? addLego() : editLego()"
+      >
+        {{ isAdding ? "Agregar Nuevo Lego" : "Guardar Cambios" }}
+      </button>
+    </div>
+  </div>
+</div>
