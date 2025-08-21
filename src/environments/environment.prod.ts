@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://legobackend-y7nufngn.b4a.run/'
+    apiUrl: 'https://backends-x9zitrfy.b4a.run/lego/api'
 }

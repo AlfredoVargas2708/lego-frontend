@@ -28,7 +28,7 @@
           class="cancel-icon"
           (click)="searchInput.value = ''"
         />
-        @if (resultOptions.length > 0 && searchInput.value !== '') {
+        @if (resultOptions.length > 0) {
         <div class="results-container">
           @for (result of resultOptions; track $index) {
           <div class="result" (click)="getLegoPieces(result)">

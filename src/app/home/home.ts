@@ -21,8 +21,8 @@ export class Home implements OnInit {
   activeField: string = '';
   isLoading: boolean = false;
   legoData: any = [];
-  searchOptions: any = [];
-  resultOptions: any = [];
+  searchOptions: any[] = [];
+  resultOptions: any[] = [];
   inputFormOptions: any = [];
   selectedOption: string = '';
   isAdding: boolean = true;
@@ -37,68 +37,46 @@ export class Home implements OnInit {
   }
 
   ngOnInit(): void {
-    this.legoService.getColumns().subscribe((result) => {
-      this.searchOptions = result.columnas.filter((column: any) => column !== 'id')
-      result.columnas.forEach((option: any) => {
-        this.addLegoForm.addControl(option, new FormControl(''));
-        this.editLegoForm.addControl(option, new FormControl(''));
-      })
-      this.cdr.markForCheck();
+    this.legoService.getColumns().subscribe({
+      next: (response) => {
+        this.searchOptions = response.filter((column) => column !== 'id');
+        response.forEach(((opt) => {
+          this.addLegoForm.addControl(opt, new FormControl(''));
+          this.editLegoForm.addControl(opt, new FormControl(''));
+        }))
+      },
+      error: (error) => {
+        console.error(error);
+      }
     })
   }
 
-  getSelectedOption(event: any) {
-    this.selectedOption = event.target.value;
+  getSelectedOption(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.selectedOption = input.value;
     this.searchInput.nativeElement.value = '';
     setTimeout(() => {
       this.searchInput.nativeElement.focus();
     }, 1000);
   }
 
-  getResultOptions(event: any) {
-    this.legoService.getOptions(this.selectedOption.toLowerCase(), event.target.value).subscribe({
-      next: (result) => {
-        this.resultOptions = result.data;
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Error al obtener los resultados:', error.error.message);
-        this.resultOptions = [];
-        this.cdr.markForCheck();
-      }
-    })
-  }
+  getResultOptions(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
 
-  getOptionsInForm(event: any, fieldName: string) {
-    this.activeField = fieldName;
-
-    const value = event.target.value;
-    if (value.trim() === '') {
-      this.inputFormOptions = [];
-      return;
-    }
-
-    this.legoService.getOptions(fieldName.toLowerCase(), value).subscribe({
-      next: (res) => {
-        this.inputFormOptions = res.data;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Error:', err);
-        this.inputFormOptions = [];
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  addNewValueToForm(value: any) {
-    if (this.isAdding) {
-      this.addLegoForm.get(this.activeField)?.setValue(value);
-      this.inputFormOptions = [];
-      this.cdr.markForCheck();
+    if (value !== '') {
+      this.legoService.getOptions(this.selectedOption.toLowerCase(), value).subscribe({
+        next: (result) => {
+          this.resultOptions = result;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error al obtener los resultados:', error.error.message);
+          this.resultOptions = [];
+        }
+      })
     } else {
-      this.editLegoForm.get(this.activeField)?.setValue(value);
-      this.inputFormOptions = [];
+      this.resultOptions = [];
       this.cdr.markForCheck();
     }
   }
@@ -110,22 +88,21 @@ export class Home implements OnInit {
     this.isLoading = true;
     this.legoService.getResults(this.selectedOption.toLowerCase(), selected, this.page, this.pageSize).subscribe({
       next: (response) => {
-        console.log(response);
-        this.legoData = response.data;
+        this.legoData = response.legos;
         this.legoData = this.legoData.map((lego: any) => {
           return {
             ...lego,
             imgLego: response.imgData.imgLego ? response.imgData.imgLego :
-            response.imgData.legoImages.some((img: any) => img.lego === lego.lego) ?
-            response.imgData.legoImages.find((img: any) => img.lego === lego.lego).url :
-            response.imgData.legoImages.find((img: any) => img.lego === '').url,
+              response.imgData.legoImages.some((img: any) => img.lego === lego.lego) ?
+                response.imgData.legoImages.find((img: any) => img.lego === lego.lego).url :
+                response.imgData.legoImages.find((img: any) => img.lego === '').url,
             imgPiece: response.imgData.imgPiece ? response.imgData.imgPiece :
-            response.imgData.piezaImages.some((img: any) => img.pieza === lego.pieza) ?
-            response.imgData.piezaImages.find((img: any) => img.pieza === lego.pieza).url :
-            response.imgData.piezaImages.find((img: any) => img.pieza === '').url
+              response.imgData.piezaImages.some((img: any) => img.pieza === lego.pieza) ?
+                response.imgData.piezaImages.find((img: any) => img.pieza === lego.pieza).url :
+                response.imgData.piezaImages.find((img: any) => img.pieza === '').url
           }
         })
-        this.pageSize = response.pagination.pageSize;
+        this.page = response.pagination.currentPage;
         this.totalPages = response.pagination.totalPages;
         this.totalLegos = response.pagination.totalLegos;
         this.isLoading = false;
@@ -135,36 +112,6 @@ export class Home implements OnInit {
         console.error('Error al obtener las piezas de Lego:', error.error.message);
       }
     });
-  }
-
-  onPageChange(page: number): void {
-    if (page >= 1 && page <= this.totalPages && page !== this.page) {
-      this.page = page;
-      this.getLegoPieces(this.valueSelected)
-    }
-  }
-
-  getPages(): number[] {
-    const pages: number[] = [];
-    let startPage = 1;
-    let endPage = this.totalPages;
-
-    if (this.totalPages > this.maxPagesToShow) {
-      const half = Math.floor(this.maxPagesToShow / 2);
-      startPage = Math.max(1, this.page - half);
-      endPage = startPage + this.maxPagesToShow - 1;
-
-      if (endPage > this.totalPages) {
-        endPage = this.totalPages;
-        startPage = Math.max(1, endPage - this.maxPagesToShow + 1);
-      }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return pages;
   }
 
   openAddLego() {
@@ -181,7 +128,7 @@ export class Home implements OnInit {
     this.legoService.editLego(editData).subscribe({
       next: (response) => {
         console.log(response);
-        this.legoData = this.legoData.map((lego: any) => lego.id === editData.id ? { ...lego, ...editData, imgPiece : response.imgData.imgPiece, imgLego : response.imgData.imgLego} : lego);
+        this.legoData = this.legoData.map((lego: any) => lego.id === editData.id ? { ...lego, ...editData, imgPiece: response.imgData.imgPiece, imgLego: response.imgData.imgLego } : lego);
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -243,5 +190,70 @@ export class Home implements OnInit {
         });
       }
     });
+  }
+
+  onPageChange(page: number): void {
+    if (page >= 1 && page <= this.totalPages && page !== this.page) {
+      this.page = page;
+      this.getLegoPieces(this.valueSelected)
+    }
+  }
+
+  getPages(): number[] {
+    const pages: number[] = [];
+    let startPage = 1;
+    let endPage = this.totalPages;
+
+    if (this.totalPages > this.maxPagesToShow) {
+      const half = Math.floor(this.maxPagesToShow / 2);
+      startPage = Math.max(1, this.page - half);
+      endPage = startPage + this.maxPagesToShow - 1;
+
+      if (endPage > this.totalPages) {
+        endPage = this.totalPages;
+        startPage = Math.max(1, endPage - this.maxPagesToShow + 1);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  }
+
+
+  getOptionsInForm(event: any, fieldName: string) {
+    this.activeField = fieldName;
+
+    const value = event.target.value;
+    if (value.trim() === '') {
+      this.inputFormOptions = [];
+      return;
+    }
+
+    this.legoService.getOptions(fieldName.toLowerCase(), value).subscribe({
+      next: (res) => {
+        this.inputFormOptions = res.data;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error:', err);
+        this.inputFormOptions = [];
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  addNewValueToForm(value: any) {
+    if (this.isAdding) {
+      this.addLegoForm.get(this.activeField)?.setValue(value);
+      this.inputFormOptions = [];
+      this.cdr.markForCheck();
+    } else {
+      this.editLegoForm.get(this.activeField)?.setValue(value);
+      this.inputFormOptions = [];
+      this.cdr.markForCheck();
+    }
   }
 }
