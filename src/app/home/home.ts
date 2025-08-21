@@ -127,8 +127,8 @@ export class Home implements OnInit {
     const editData = this.editLegoForm.value;
     this.legoService.editLego(editData).subscribe({
       next: (response) => {
-        console.log(response);
         this.legoData = this.legoData.map((lego: any) => lego.id === editData.id ? { ...lego, ...editData, imgPiece: response.imgData.imgPiece, imgLego: response.imgData.imgLego } : lego);
+        this.editLegoForm.reset();
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -140,18 +140,9 @@ export class Home implements OnInit {
   addLego() {
     const addData = this.addLegoForm.value;
     this.legoService.addLego(addData).subscribe({
-      next: (response) => {
-        console.log(response);
-        if (this.addLegoForm.get('lego')?.value !== '') {
-          this.selectedOption = 'lego';
-          this.getLegoPieces(this.addLegoForm.get('lego')?.value)
-        } else if (this.addLegoForm.get('pieza')?.value !== '') {
-          this.selectedOption = 'pieza';
-          this.getLegoPieces(this.addLegoForm.get('pieza')?.value)
-        } else {
-          this.selectedOption = 'lego';
-          this.getLegoPieces(this.addLegoForm.get('lego')?.value)
-        }
+      next: () => {
+        this.selectedOption = this.addLegoForm.get('lego')?.value !== '' ? 'lego' : 'pieza';
+        this.getLegoPieces(this.addLegoForm.get(this.selectedOption)?.value);
         this.addLegoForm.reset();
         this.cdr.markForCheck();
       },
@@ -173,10 +164,8 @@ export class Home implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         this.legoService.deleteLego(id).subscribe({
-          next: (result) => {
-            console.log(result);
-            this.selectedOption = 'lego'
-            this.getLegoPieces(lego)
+          next: () => {
+            this.getLegoPieces(this.valueSelected);
             this.cdr.markForCheck();
           },
           error: (error) => {
