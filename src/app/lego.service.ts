@@ -25,10 +25,10 @@ export class LegoService {
   }
 
   addLego(legoData: any): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/agregar`, { legoData });
+    return this.http.post(`${environment.apiUrl}/insert`, { legoData });
   }
 
   deleteLego(id: any): Observable<any> {
-    return this.http.delete(`${environment.apiUrl}/eliminar/${id}`)
+    return this.http.delete(`${environment.apiUrl}/delete/${id}`)
   }
 }
