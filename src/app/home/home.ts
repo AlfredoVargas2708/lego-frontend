@@ -234,7 +234,7 @@ export class Home implements OnInit {
 
     this.legoService.getOptions(fieldName.toLowerCase(), value).subscribe({
       next: (res) => {
-        this.inputFormOptions = res.data;
+        this.inputFormOptions = res;
         this.cdr.markForCheck();
       },
       error: (err) => {
