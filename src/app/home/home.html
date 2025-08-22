@@ -17,7 +17,14 @@
       <div class="d-flex flex-row align-items-center position-relative">
         <input
           #searchInput
-          type="text"
+          [type]="
+            selectedOption.toLowerCase() === 'pieza' ||
+            selectedOption.toLowerCase() === 'lego' ||
+            selectedOption.toLowerCase() === 'cantidad' ||
+            selectedOption.toLowerCase() === 'task'
+              ? 'number'
+              : 'text'
+          "
           class="form-control"
           (input)="getResultOptions($event)"
         />
@@ -168,35 +175,194 @@
     <div class="row align-items-center mb-4">
       <div class="col-md-12">
         <form [formGroup]="isAdding ? addLegoForm : editLegoForm">
-          @for (controlName of addLegoForm.controls | keyvalue; track $index) {
-          @if (controlName.key !== 'id') {
-          <div class="form-group mb-2">
-            <label [for]="controlName.key" class="form-label">
-              {{ controlName.key }}
-            </label>
-
-            <div class="d-flex flex-column position-relative">
-              <input
-                type="number"
-                class="form-control"
-                [formControlName]="controlName.key"
-                (input)="getOptionsInForm($event, controlName.key)"
-                [attr.data-field]="controlName.key"
-              />
-
-              @if (inputFormOptions.length > 0 && activeField ===
-              controlName.key) {
-              <div class="results-form-container">
-                @for (result of inputFormOptions; track $index) {
-                <div class="result" (click)="addNewValueToForm(result)">
-                  <p class="fs-5">{{ result }}</p>
+          <div class="row align-items-center mb-5">
+            <div class="col-md-6">
+              <label for="pieza" class="form-label">{{
+                "pieza" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="pieza"
+                  (input)="getOptionsInForm($event, 'pieza')"
+                />
+                @if (inputFormOptions.length > 0 && activeField === 'pieza') {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
                 </div>
                 }
               </div>
-              }
+            </div>
+            <div class="col-md-6">
+              <label for="lego" class="form-label">{{
+                "lego" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="lego"
+                  (input)="getOptionsInForm($event, 'lego')"
+                />
+                @if (inputFormOptions.length > 0 && activeField === 'lego') {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
             </div>
           </div>
-          } }
+          <div class="row align-items-center mb-5">
+            <div class="col-md-6">
+              <label for="set" class="form-label">{{
+                "set" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="set"
+                  (input)="getOptionsInForm($event, 'set')"
+                />
+                @if (inputFormOptions.length > 0 && activeField === 'set') {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="cantidad" class="form-label">{{
+                "cantidad" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="cantidad"
+                  (input)="getOptionsInForm($event, 'cantidad')"
+                />
+                @if (inputFormOptions.length > 0 && activeField === 'cantidad')
+                {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="row align-items-center mb-5">
+            <div class="col-md-6">
+              <label for="task" class="form-label">{{
+                "task" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="task"
+                  (input)="getOptionsInForm($event, 'task')"
+                />
+                @if (inputFormOptions.length > 0 && activeField === 'task') {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="esta_pedido" class="form-label">{{
+                "esta pedido" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="esta_pedido"
+                  (input)="getOptionsInForm($event, 'esta_pedido')"
+                />
+                @if (inputFormOptions.length > 0 && activeField ===
+                'esta_pedido') {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="row align-items-center mb-5">
+            <div class="col-md-6">
+              <label for="esta_completo" class="form-label">{{
+                "esta completo" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="esta_completo"
+                  (input)="getOptionsInForm($event, 'esta_completo')"
+                />
+                @if (inputFormOptions.length > 0 && activeField ===
+                'esta_completo') {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="esta_reemplazado" class="form-label">{{
+                "esta reemplazado" | titlecase
+              }}</label>
+              <div class="d-flex flex-column position-relative">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="esta_reemplazado"
+                  (input)="getOptionsInForm($event, 'esta_reemplazado')"
+                />
+                @if (inputFormOptions.length > 0 && activeField ===
+                'esta_reemplazado') {
+                <div class="results-form-container">
+                  @for (result of inputFormOptions; track $index) {
+                  <div class="result" (click)="addNewValueToForm(result)">
+                    <p class="fs-5">{{ result }}</p>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>
